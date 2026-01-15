@@ -1,0 +1,3 @@
+[submodule "Assets/FlowerPeople-Artworks/FlowerPeopleAssets"]
+	path = Assets/FlowerPeople-Artworks/FlowerPeopleAssets
+	url = https://github.com/team-lab/FlowerPeopleAssets.git
