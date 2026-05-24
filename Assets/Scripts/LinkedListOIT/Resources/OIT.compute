@@ -1,0 +1,29 @@
+#pragma kernel Reset
+
+#include "Assets/Shaders/Common/DispatcherHelper.hlsl"
+#include "Assets/Shaders/Common/OIT.hlsl"
+
+#define THREAD_NUM_X 32
+#define THREAD_NUM_Y 32
+#define UINT_MAX 0xFFFFFFFFu
+#define UINT_MIN 0x80000000u
+
+RWStructuredBuffer<FragmentAndLinkBuffer> _FLBuffer : register(u0);
+RWByteAddressBuffer _StartOffsetBuffer              : register(u1);
+RWStructuredBuffer<uint3> _PerPixelSlots		    : register(u2); //x: uuid, y: depth, z: nodeIdx
+int _SlotCount;
+
+[numthreads(512,1,1)]
+void Reset(uint3 id : SV_DispatchThreadID)
+{
+    RETURN_IF_INVALID(id);
+	
+	// const uint idx = id.x;
+	const uint idx = id.x + id.y * _DispatchedX;
+
+	uint addrIdx = idx / _SlotCount;
+	_StartOffsetBuffer.Store(addrIdx * 4u, 0xFFFFFFFFu);
+	_PerPixelSlots[idx] = uint3(0xFFFFFFFFu, 10.0, 0xFFFFFFFFu);
+	_FLBuffer[idx].uuid = 0xFFFFFFFFu;
+	_FLBuffer[idx].depth = 10.0;
+}

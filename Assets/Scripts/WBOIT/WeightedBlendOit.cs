@@ -39,7 +39,7 @@ public class WeightedBlendOit : MonoBehaviour
     {
         if (_enable)
         {
-            RenderTargetIdentifier[] colorIds = { new (_revealageTexture.colorBuffer), new (_accumulationTexture.colorBuffer), new (_colorTexture.colorBuffer)};
+            RenderTargetIdentifier[] colorIds = { new (_revealageTexture.colorBuffer), new (_accumulationTexture.colorBuffer), new (_colorTexture.colorBuffer) };
             RenderTargetIdentifier depthId = new RenderTargetIdentifier(_colorTexture.depthBuffer);
             
             _instance.UpdateCommandBuffer(colorIds, depthId, new Color(1f,1f,1f, 0f), Color.clear, RTClearFlags.ColorDepth);

@@ -39,8 +39,7 @@ public class Instance : MonoBehaviour
     private GraphicsBuffer[][] _argsBuffers;
     private CommandBuffer _commandBuffer;
     private Material[] _materials;
-    private Material[] _linkedListMaterials;
-    private Shader _cachedLinkedListShader;
+    private Shader _cachedInstanceShader;
     private DepthPeelingType _depthPeelingType;
     private ComopsiteType _compositeType;
     private readonly uint[] _args = { 0, 0, 0, 0, 0 };
@@ -182,15 +181,15 @@ public class Instance : MonoBehaviour
         Graphics.ExecuteCommandBuffer(_commandBuffer);
     }
 
-    public void AddLinkedListDrawCalls(CommandBuffer cmd, Shader linkedListShader, int width, int height, int maxNodes)
+    public void AddLinkedListDrawCalls(CommandBuffer cmd, Shader instanceShader, int width, int height, int maxNodes)
     {
-        if (linkedListShader == null || _instanceProps == null) return;
+        if (instanceShader == null || _instanceProps == null) return;
 
-        if (_linkedListMaterials == null || _cachedLinkedListShader != linkedListShader)
+        if (_materials == null || _cachedInstanceShader != instanceShader)
         {
-            if (_linkedListMaterials != null)
+            if (_materials != null)
             {
-                foreach (var m in _linkedListMaterials)
+                foreach (var m in _materials)
                 {
                     if (m != null)
                     {
@@ -199,23 +198,23 @@ public class Instance : MonoBehaviour
                     }
                 }
             }
-            _cachedLinkedListShader = linkedListShader;
-            _linkedListMaterials = new Material[_instanceProps.Length];
+            _cachedInstanceShader = instanceShader;
+            _materials = new Material[_instanceProps.Length];
             for (int i = 0; i < _instanceProps.Length; i++)
-                _linkedListMaterials[i] = new Material(linkedListShader);
+                _materials[i] = new Material(instanceShader);
         }
 
         for (int j = 0; j < _instanceProps.Length; j++)
         {
             int i = _ascendingDrawOrder ? j : _instanceProps.Length - j - 1;
-            var material = _linkedListMaterials[i];
-            material.SetFloat("_ZWrite", 0);
+            var material = _materials[i];
+            material.SetFloat("_ZWrite", _zwrite ? 1f : 0f);
             material.SetFloat("_ZTest", (int)_compareFunction);
             material.SetFloat("_Scale", _instanceProps[i].Scale);
             material.SetFloat("_Alpha", _instanceProps[i].Alpha);
             material.SetTexture("_MainTex", _instanceProps[i].Texture);
             material.SetBuffer("_InstanceBuffer", _dataBuffers[i]);
-            material.SetVector("_OIT_Size", new Vector4(width, height, 0, 0));
+            material.SetVector("_OIT_Size", new Vector2(width, height));
             material.SetInt("_MaxNodes", maxNodes);
 
             var mesh = _instanceProps[i].Mesh;
@@ -284,18 +283,6 @@ public class Instance : MonoBehaviour
             {
                 DeleteMaterial(_materials[i]);
             }
-        }
-        if (_linkedListMaterials != null)
-        {
-            foreach (var m in _linkedListMaterials)
-            {
-                if (m != null)
-                {
-                    if (Application.isEditor) DestroyImmediate(m);
-                    else Destroy(m);
-                }
-            }
-            _linkedListMaterials = null;
         }
     }
 }

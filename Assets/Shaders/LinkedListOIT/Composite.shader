@@ -30,12 +30,15 @@ Shader "Hidden/LinkedListOIT/Composite"
             {
                 float4 pos : SV_POSITION;
                 float2 uv : TEXCOORD0;
+                float4 screenPos : TEXCOORD1;
             };
 
-            StructuredBuffer<uint> _HeadBuffer;
+            // StructuredBuffer<uint> _HeadBuffer;
+            RWByteAddressBuffer _HeadBuffer;
             StructuredBuffer<FragmentAndLinkColorBuffer> _NodeBuffer;
-            float4 _BufferSize;
+            sampler2D _MainTex;
             sampler2D _BackgroundTex;
+            float2 _OIT_Size;
 
             #define MAX_FRAGMENTS 64
 
@@ -44,25 +47,33 @@ Shader "Hidden/LinkedListOIT/Composite"
                 v2f o;
                 o.pos = UnityObjectToClipPos(v.vertex);
                 o.uv = v.uv;
+                o.screenPos = ComputeScreenPos(o.pos);
                 return o;
             }
 
             float4 frag(v2f i) : SV_Target
             {
-                uint2 bufferSize = (uint2)_BufferSize.xy;
+                uint2 bufferSize = (uint2)_OIT_Size.xy;
                 uint2 pixCoord = (uint2)(i.uv * bufferSize);
                 pixCoord = min(pixCoord, bufferSize - 1);
                 uint pixelIdx = pixCoord.x + pixCoord.y * bufferSize.x;
 
-                uint head = _HeadBuffer[pixelIdx];
-                if (head == 0xFFFFFFFF)
+                // uint head = _HeadBuffer[pixelIdx];
+
+                float2 screenUV = i.screenPos.xy / i.screenPos.w;
+                uint2 screenPos = ScreenCoord(screenUV, (uint2)_OIT_Size.xy);
+                uint uStartOffsetAddress = ByteAddress(screenPos, (uint2)_OIT_Size.xy);
+                uint uOffset;
+                _HeadBuffer.InterlockedExchange(uStartOffsetAddress, 0xFFFFFFFF, uOffset);
+                
+                if (uOffset == 0xFFFFFFFF)
                 {
                     return tex2D(_BackgroundTex, i.uv);
                 }
 
                 FragmentAndLinkColorBuffer fragments[MAX_FRAGMENTS];
                 int count = 0;
-                uint nodeIdx = head;
+                uint nodeIdx = uOffset;
 
                 while (nodeIdx != 0xFFFFFFFF && count < MAX_FRAGMENTS)
                 {
@@ -98,12 +109,14 @@ Shader "Hidden/LinkedListOIT/Composite"
                 }
 
                 float4 background = tex2D(_BackgroundTex, i.uv);
+                // return background;
+                // return result;
+                // return tex2D(_MainTex, i.uv);
                 #if defined(ALPHA_BLEND)
                 return float4(lerp(background.rgb, result.rgb, result.a), 1);
                 #elif defined(ADDITIVE)
                 return float4(background.rgb + result.rgb, 1);
                 #endif
-                return result;
             }
             ENDCG
         }

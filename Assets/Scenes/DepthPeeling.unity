@@ -153,26 +153,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _instanceProps:
-  - Mesh: {fileID: -2432090755550338912, guid: 96e6ac85f5b9a4c439adb3fff74192b1, type: 3}
-    Texture: {fileID: 0}
+  - Mesh: {fileID: 4300000, guid: 6886bd4894e633a42a436eb8694afd7a, type: 2}
+    Texture: {fileID: 2800000, guid: f590725defd5cae47ac060ca00f7637c, type: 3}
     Alpha: 0.3
-    Scale: 0.6
-    ColorRandomness: 1
-  - Mesh: {fileID: -2432090755550338912, guid: 44369d1e04e523541b86ad5e73730cac, type: 3}
-    Texture: {fileID: 0}
+    Scale: 3
+    ColorRandomness: 0.1
+  - Mesh: {fileID: 4300000, guid: df69429ead2d5bf438d3ec7e607fc68b, type: 2}
+    Texture: {fileID: 2800000, guid: 1004fd0127ce35644b04410916c7fb6f, type: 3}
     Alpha: 0.3
-    Scale: 0.25
-    ColorRandomness: 1
-  - Mesh: {fileID: 430890998175501305, guid: 19ab8655f536e5448959da856e69bb32, type: 3}
-    Texture: {fileID: 0}
+    Scale: 3
+    ColorRandomness: 0.1
+  - Mesh: {fileID: 4300000, guid: 7204b06f66ac43344a2579ab78721ae8, type: 2}
+    Texture: {fileID: 2800000, guid: 9fc386ce153917947b607cf8e4bbfb1d, type: 3}
     Alpha: 0.3
-    Scale: 0.6
-    ColorRandomness: 1
-  - Mesh: {fileID: -2432090755550338912, guid: 2646254354e270c4293eeec0b408091e, type: 3}
-    Texture: {fileID: 0}
+    Scale: 3
+    ColorRandomness: 0.1
+  - Mesh: {fileID: 4300000, guid: 7264c23f712059340b4a22f1a260c1d2, type: 2}
+    Texture: {fileID: 2800000, guid: 39c46f57d9f0c764f83b15351149185d, type: 3}
     Alpha: 0.3
-    Scale: 1
-    ColorRandomness: 1
+    Scale: 7
+    ColorRandomness: 0.1
   _size: 5
   _scale: {x: 0.3, y: 0.3, z: 0.3}
   _count: 200

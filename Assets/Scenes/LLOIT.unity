@@ -548,12 +548,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _compositeType: 0
+  _computeShader: {fileID: 7200000, guid: 3aeb7f237452e5945bd54fbd54a2b7aa, type: 3}
   _instanceShader: {fileID: 4800000, guid: 3325dc7b61e988343b76c5bd2251b149, type: 3}
   _compositeShader: {fileID: 4800000, guid: 280ce36eb6f29e54990c1217c46e0479, type: 3}
   _instance: {fileID: 442491210}
   _enable: 1
   _resolutionScale: 1
-  _maxNodesPerFrame: 4194304
+  _maxNodesPerPixel: 4
 --- !u!1 &1015194666
 GameObject:
   m_ObjectHideFlags: 0
