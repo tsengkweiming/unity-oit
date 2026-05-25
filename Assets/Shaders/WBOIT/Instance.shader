@@ -84,7 +84,7 @@ Shader "Hidden/WBOIT/Instance"
         // screen
     	OUT.screenPos = ComputeScreenPos(UnityWorldToClipPos(worldPos));
 
-    	//normalized view space
+    	// normalized view space
         OUT.depth = -mul(UNITY_MATRIX_V, worldPos).z * _ProjectionParams.w;
 
 		// Camera-space depth

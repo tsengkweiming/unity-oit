@@ -7,12 +7,12 @@ public enum DepthPeelingType { Front2Back, DualPeeling }
 public enum ComopsiteType { AlphaBlend, Additive }
 public class DepthPeeling : MonoBehaviour
 {
+    [SerializeField] private bool _enable;
     [SerializeField] private DepthPeelingType _depthPeelingType;
     [SerializeField] private ComopsiteType _compositeType;
     [SerializeField] [Range(1, 50)] private int _layers;
     [SerializeField] [Range(0, 4)] private int _lod1;
     [SerializeField] [Range(0, 4)] private int _lod2;
-    [SerializeField] private bool _enable;
     [SerializeField] private Instance _instance;
     [SerializeField] private Shader _compositeShader;
     private Material _compositeMaterial;

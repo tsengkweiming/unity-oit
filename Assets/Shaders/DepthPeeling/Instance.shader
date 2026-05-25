@@ -91,7 +91,7 @@ Shader "Hidden/DepthPeeling/Instance"
         // screen
     	OUT.screenPos = ComputeScreenPos(UnityWorldToClipPos(worldPos));
 
-    	//normalized view space
+    	// normalized view space
         OUT.depth = -mul(UNITY_MATRIX_V, worldPos).z * _ProjectionParams.w;
 
 		// view space real depth

@@ -33,7 +33,6 @@ Shader "Hidden/LinkedListOIT/Instance"
         float4 screenPos : TEXCOORD3;
     };
 
-    // RWStructuredBuffer<uint> _HeadBuffer : register(u2);
     RWByteAddressBuffer _HeadBuffer : register(u2);
     RWStructuredBuffer<FragmentAndLinkColorBuffer> _NodeBuffer : register(u3);
     RWStructuredBuffer<uint> _FragmentCounter : register(u4);
@@ -45,7 +44,6 @@ Shader "Hidden/LinkedListOIT/Instance"
     float _Scale;
     float _Alpha;
     float4 _Color;
-    sampler2D _BackgroundTex;
 
     v2f vert(appdata v)
     {
@@ -65,21 +63,13 @@ Shader "Hidden/LinkedListOIT/Instance"
         // screen
         o.screenPos = ComputeScreenPos(o.vertex);
         
-    	//normalized view space
+    	// normalized view space
         o.depth = -mul(UNITY_MATRIX_V, worldPos).z * _ProjectionParams.w;
         return o;
     }
 
     float4 frag(v2f i) : SV_Target
     {
-        uint2 oitSize = (uint2)_OIT_Size;
-        uint2 pixCoord = PixCoord(i.screenPos, oitSize);
-        uint pixelIdx = pixCoord.x + pixCoord.y * oitSize.x;
-
-        // uint nodeIdx;
-        // InterlockedAdd(_FragmentCounter[0], 1, nodeIdx);
-        // if (nodeIdx >= _MaxNodes)
-        //     discard;
 	    uint nodeIdx = _NodeBuffer.IncrementCounter();
         
         InstanceData id = _InstanceBuffer[i.bufferID];
@@ -88,8 +78,6 @@ Shader "Hidden/LinkedListOIT/Instance"
         color.a *= _Alpha;
 
         uint prevHead;
-        // InterlockedExchange(_HeadBuffer[pixelIdx], nodeIdx, prevHead);
-        uint pixelPos = (uint)i.vertex.x + (uint)i.vertex.y * (uint)(_OIT_Size.x + 0.5);
         float2 screenUV = i.screenPos.xy / i.screenPos.w;
     	uint2 screenPos = ScreenCoord(screenUV, _OIT_Size);
 		uint  linIdx = screenPos.x + screenPos.y * _OIT_Size.x;
@@ -98,21 +86,20 @@ Shader "Hidden/LinkedListOIT/Instance"
         
         FragmentAndLinkColorBuffer node;
         node.uuid = 0;
-        node.depth = i.screenPos.z / i.screenPos.w;//i.depth;
+        node.depth = i.screenPos.z / i.screenPos.w;
         node.next = prevHead;
         node.color = ColorToBit(color);
 
         _NodeBuffer[nodeIdx] = node;
 
-        // return color;
-        return tex2D(_BackgroundTex, i.uv);
-        return float4(0, 0, 0, 0);
+        return color;
     }
     ENDCG
 
     SubShader
     {
         Tags { "Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent" }
+        Blend SrcAlpha OneMinusSrcAlpha
         Cull [_CullMode]
         ZWrite [_ZWrite]
         ZTest [_ZTest]

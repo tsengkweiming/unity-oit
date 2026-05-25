@@ -157,22 +157,22 @@ MonoBehaviour:
     Texture: {fileID: 0}
     Alpha: 0.3
     Scale: 0.6
-    ColorRandomness: 1
+    ColorRandomness: 0.8
   - Mesh: {fileID: -2432090755550338912, guid: 44369d1e04e523541b86ad5e73730cac, type: 3}
     Texture: {fileID: 0}
     Alpha: 0.3
     Scale: 0.25
-    ColorRandomness: 1
+    ColorRandomness: 0.4
   - Mesh: {fileID: 430890998175501305, guid: 19ab8655f536e5448959da856e69bb32, type: 3}
     Texture: {fileID: 0}
     Alpha: 0.3
     Scale: 0.6
-    ColorRandomness: 1
+    ColorRandomness: 0.2
   - Mesh: {fileID: -2432090755550338912, guid: 2646254354e270c4293eeec0b408091e, type: 3}
     Texture: {fileID: 0}
     Alpha: 0.3
     Scale: 1
-    ColorRandomness: 1
+    ColorRandomness: 0.1
   _size: 5
   _scale: {x: 0.3, y: 0.3, z: 0.3}
   _count: 200

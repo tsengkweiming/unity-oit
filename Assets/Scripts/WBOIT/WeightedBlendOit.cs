@@ -7,14 +7,14 @@ public class WeightedBlendOit : MonoBehaviour
 {
     public enum WeightFunction { Weight0,  Weight1, Weight2, Weight3 }
     
+    [SerializeField] private bool _enable;
     [SerializeField] private ComopsiteType _compositeType;
     [SerializeField] private WeightFunction _weightFunction;
     [SerializeField] private Shader _compositeShader;
+    [SerializeField] private Instance _instance;
     [SerializeField] private RenderTexture _colorTexture;
     [SerializeField] private RenderTexture _accumulationTexture;
     [SerializeField] private RenderTexture _revealageTexture;
-    [SerializeField] private bool _enable;
-    [SerializeField] private Instance _instance;
     private Material _compositeMaterial;
     private Camera _camera;
     private CommandBuffer _commandBuffer;

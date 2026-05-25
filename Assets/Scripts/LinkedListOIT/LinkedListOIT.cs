@@ -11,20 +11,19 @@ public struct FragmentAndLinkBuffer
 };
 public class LinkedListOIT : MonoBehaviour
 {
-    private const int FragmentNodeStride = 16; // uuid(4) + depth(4) + next(4) + color(4)
     private const uint InvalidNodeIndex = 0xFFFFFFFF;
+    private const int ThreadsX = 512;
+    private const int MaxGroups = 65535;
 
+    [SerializeField] private bool _enable;
     [SerializeField] private ComopsiteType _compositeType;
+    [SerializeField] [Range(1, 16)] private int _resolutionScale = 1;
+    [SerializeField] private int _maxNodesPerPixel = 4;
     [SerializeField] private ComputeShader _computeShader;
     [SerializeField] private Shader _instanceShader;
     [SerializeField] private Shader _compositeShader;
     [SerializeField] private Instance _instance;
-    [SerializeField] private bool _enable;
-    [SerializeField] [Range(1, 4)] private int _resolutionScale = 1;
-    [SerializeField] private int _maxNodesPerPixel = 4;
 
-    const int THREADS_X = 512;
-    const int MAX_GROUPS = 65535;
     private CommandBuffer _commandBuffer;
     private Material _compositeMaterial;
     private RenderTexture _depthTexture;
@@ -104,16 +103,16 @@ public class LinkedListOIT : MonoBehaviour
     {
         var kernelId = _computeShader.FindKernel("Reset");
         int total = _pixelCount * _maxNodesPerPixel;
-        int totalGroups = (total + THREADS_X - 1) / THREADS_X;
-        int groupsX = Mathf.Min(totalGroups, MAX_GROUPS);
-        int groupsY = (totalGroups + MAX_GROUPS - 1) / MAX_GROUPS;  // ceil(totalGroups / 65535)
-        int dispatchedX = groupsX * THREADS_X;   
+        int totalGroups = (total + ThreadsX - 1) / ThreadsX;
+        int groupsX = Mathf.Min(totalGroups, MaxGroups);
+        int groupsY = (totalGroups + MaxGroups - 1) / MaxGroups;
+        int dispatchedX = groupsX * ThreadsX;   
         _computeShader.SetInt("_SlotCount", _maxNodesPerPixel);
         _computeShader.SetInt("_DispatchedX", dispatchedX);
         _computeShader.SetInt("_DispatchedY", groupsY);
         _computeShader.SetInt("_DispatchedZ", 1);
-        _computeShader.SetBuffer(kernelId, "_FLBuffer", _nodeBuffer);
-        _computeShader.SetBuffer(kernelId, "_StartOffsetBuffer", _headBuffer);
+        _computeShader.SetBuffer(kernelId, "_NodeBuffer", _nodeBuffer);
+        _computeShader.SetBuffer(kernelId, "_HeadBuffer", _headBuffer);
         _computeShader.SetBuffer(kernelId, "_PerPixelSlots", _perPixelSlotBuffer);
         _computeShader.Dispatch(kernelId, groupsX, groupsY, 1);
     }
@@ -128,7 +127,7 @@ public class LinkedListOIT : MonoBehaviour
             _instance.UpdateCommandBuffer(
                 new[] { (RenderTargetIdentifier)destination },
                 (RenderTargetIdentifier)destination,
-                clearFlags: RTClearFlags.None  // don't wipe what we just blitted
+                clearFlags: RTClearFlags.None
             );
             _instance.ExecuteCommandBuffer();
             return;
@@ -138,7 +137,6 @@ public class LinkedListOIT : MonoBehaviour
         _commandBuffer.Clear();
 
         _headBuffer.SetData(_headClearData);
-        // _perPixelSlotBuffer.SetData(new[] { 0u });
         ResetBuffer();
         
         switch (_compositeType)
@@ -157,21 +155,17 @@ public class LinkedListOIT : MonoBehaviour
         _compositeMaterial.SetBuffer("_NodeBuffer", _nodeBuffer);
         _compositeMaterial.SetVector("_OIT_Size", new Vector4(_bufferWidth, _bufferHeight, 0, 0));
         _compositeMaterial.SetTexture("_BackgroundTex", source);
-
-        Graphics.SetRandomWriteTarget(2, _headBuffer);
-        Graphics.SetRandomWriteTarget(3, _nodeBuffer);
-        Graphics.SetRandomWriteTarget(4, _perPixelSlotBuffer);
         
-        // Instance draw: render to dummy target (not source) so background stays clean
+        // Instance draw
         _commandBuffer.SetRenderTarget(_dummyColorTarget.colorBuffer, _depthTexture.depthBuffer);
         _commandBuffer.ClearRenderTarget(true, true, Color.clear, 1f);
         _commandBuffer.SetRandomWriteTarget(2, _headBuffer, true);
         _commandBuffer.SetRandomWriteTarget(3, _nodeBuffer, true);
         _commandBuffer.SetRandomWriteTarget(4, _perPixelSlotBuffer, true);
 
-        _instance.AddLinkedListDrawCalls(_commandBuffer, _instanceShader, _bufferWidth, _bufferHeight, _pixelCount * _maxNodesPerPixel, source);
+        _instance.AddLinkedListDrawCalls(_commandBuffer, _instanceShader, _bufferWidth, _bufferHeight, _pixelCount * _maxNodesPerPixel);
 
-        // Composite in the same CommandBuffer — Unity inserts the UAV barrier for us
+        // Composite in the same CommandBuffer
         _commandBuffer.Blit(source, destination, _compositeMaterial);
 
         Graphics.ExecuteCommandBuffer(_commandBuffer);

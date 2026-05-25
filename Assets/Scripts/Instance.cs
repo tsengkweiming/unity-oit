@@ -22,11 +22,11 @@ public class InstanceProp
 }
 public class Instance : MonoBehaviour
 {
+    [SerializeField] private Shader _shader;
     [SerializeField] private InstanceProp[] _instanceProps;
     [SerializeField] [Range(0, 20)] private float _size;
     [SerializeField] private Vector3 _scale;
     [SerializeField] private int _count;
-    [SerializeField] private Shader _shader;
     [SerializeField] private bool _zwrite;
     [SerializeField] private CompareFunction _compareFunction;
     [SerializeField] private BlendMode _srcFactor0;
@@ -181,7 +181,7 @@ public class Instance : MonoBehaviour
         Graphics.ExecuteCommandBuffer(_commandBuffer);
     }
 
-    public void AddLinkedListDrawCalls(CommandBuffer cmd, Shader instanceShader, int width, int height, int maxNodes, RenderTexture texture)
+    public void AddLinkedListDrawCalls(CommandBuffer cmd, Shader instanceShader, int width, int height, int maxNodes)
     {
         if (instanceShader == null || _instanceProps == null) return;
 
@@ -216,7 +216,6 @@ public class Instance : MonoBehaviour
             material.SetBuffer("_InstanceBuffer", _dataBuffers[i]);
             material.SetVector("_OIT_Size", new Vector2(width, height));
             material.SetInt("_MaxNodes", maxNodes);
-            material.SetTexture("_BackgroundTex", texture);
 
             var mesh = _instanceProps[i].Mesh;
             for (int sm = 0; sm < mesh.subMeshCount; sm++)

@@ -33,15 +33,12 @@ Shader "Hidden/LinkedListOIT/Composite"
                 float4 screenPos : TEXCOORD1;
             };
 
-            // // StructuredBuffer<uint> _HeadBuffer;
-            // ByteAddressBuffer _HeadBuffer;
-            // StructuredBuffer<FragmentAndLinkColorBuffer> _NodeBuffer;
             RWByteAddressBuffer _HeadBuffer : register(u2);
             RWStructuredBuffer<FragmentAndLinkColorBuffer> _NodeBuffer : register(u3);
             RWStructuredBuffer<uint> _FragmentCounter : register(u4);
             sampler2D _MainTex;
             sampler2D _BackgroundTex;
-            float4 _OIT_Size;
+            float2 _OIT_Size;
 
             #define MAX_FRAGMENTS 64
 
@@ -71,14 +68,14 @@ Shader "Hidden/LinkedListOIT/Composite"
                     return tex2D(_BackgroundTex, i.uv);
                 }
 
-                FragmentAndLinkColorBuffer fragments[MAX_FRAGMENTS];
+                FragmentAndLinkColorBuffer sortedFragments[MAX_FRAGMENTS];
                 int count = 0;
                 uint nodeIdx = uOffset;
 
                 while (nodeIdx != 0xFFFFFFFF && count < MAX_FRAGMENTS)
                 {
-                    fragments[count] = _NodeBuffer[nodeIdx];
-                    nodeIdx = fragments[count].next;
+                    sortedFragments[count] = _NodeBuffer[nodeIdx];
+                    nodeIdx = sortedFragments[count].next;
                     count++;
                 }
 
@@ -86,37 +83,27 @@ Shader "Hidden/LinkedListOIT/Composite"
                 {
                     for (int k = j + 1; k < count; k++)
                     {
-                        if (fragments[j].depth < fragments[k].depth)
+                        if (sortedFragments[j].depth < sortedFragments[k].depth)
                         {
-                            FragmentAndLinkColorBuffer tmp = fragments[j];
-                            fragments[j] = fragments[k];
-                            fragments[k] = tmp;
+                            FragmentAndLinkColorBuffer tmp = sortedFragments[j];
+                            sortedFragments[j] = sortedFragments[k];
+                            sortedFragments[k] = tmp;
                         }
                     }
                 }
 
-                float4 result = float4(0, 0, 0, 1);
-                for (int f = count - 1; f >= 0; f--)
+                float4 background = tex2D(_BackgroundTex, i.uv);
+                float4 result = background; // background is the bottom layer
+                for (int f = 0; f < count; f++) // back-to-front: fragments[0] is furthest
                 {
-                    float4 col = BitToColor(fragments[f].color);
+                    float4 col = BitToColor(sortedFragments[f].color);
                     #if defined(ALPHA_BLEND)
-                    result.rgb = col.rgb * col.a + result.rgb * (1 - col.a);
-                    result.a = col.a + result.a * (1 - col.a);
+                    result.rgb = col.rgb * col.a + result.rgb * (1.0 - col.a);
                     #elif defined(ADDITIVE)
                     result.rgb += col.rgb * col.a;
-                    result.a += col.a;
                     #endif
                 }
-
-                float4 background = tex2D(_BackgroundTex, i.uv);
-                // return background;
-                // return result;
-                // return tex2D(_MainTex, i.uv);
-                #if defined(ALPHA_BLEND)
-                return float4(lerp(background.rgb, result.rgb, result.a), 1);
-                #elif defined(ADDITIVE)
-                return float4(background.rgb + result.rgb, 1);
-                #endif
+                return float4(result.rgb, 1);
             }
             ENDCG
         }
