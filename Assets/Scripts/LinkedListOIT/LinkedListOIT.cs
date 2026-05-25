@@ -141,15 +141,6 @@ public class LinkedListOIT : MonoBehaviour
         // _perPixelSlotBuffer.SetData(new[] { 0u });
         ResetBuffer();
         
-        _commandBuffer.SetRenderTarget(source.colorBuffer, _depthTexture.depthBuffer);
-        _commandBuffer.ClearRenderTarget(true, true, Color.clear, 1f);
-        _commandBuffer.SetRandomWriteTarget(2, _headBuffer, true);
-        _commandBuffer.SetRandomWriteTarget(3, _nodeBuffer, true);
-        _commandBuffer.SetRandomWriteTarget(4, _perPixelSlotBuffer, true);
-
-        _instance.AddLinkedListDrawCalls(_commandBuffer, _instanceShader, _bufferWidth, _bufferHeight, _pixelCount * _maxNodesPerPixel);
-        Graphics.ExecuteCommandBuffer(_commandBuffer);
-
         switch (_compositeType)
         {
             case ComopsiteType.AlphaBlend:
@@ -167,7 +158,23 @@ public class LinkedListOIT : MonoBehaviour
         _compositeMaterial.SetVector("_OIT_Size", new Vector4(_bufferWidth, _bufferHeight, 0, 0));
         _compositeMaterial.SetTexture("_BackgroundTex", source);
 
-        Graphics.Blit(source, destination, _compositeMaterial);
+        Graphics.SetRandomWriteTarget(2, _headBuffer);
+        Graphics.SetRandomWriteTarget(3, _nodeBuffer);
+        Graphics.SetRandomWriteTarget(4, _perPixelSlotBuffer);
+        
+        // Instance draw: render to dummy target (not source) so background stays clean
+        _commandBuffer.SetRenderTarget(_dummyColorTarget.colorBuffer, _depthTexture.depthBuffer);
+        _commandBuffer.ClearRenderTarget(true, true, Color.clear, 1f);
+        _commandBuffer.SetRandomWriteTarget(2, _headBuffer, true);
+        _commandBuffer.SetRandomWriteTarget(3, _nodeBuffer, true);
+        _commandBuffer.SetRandomWriteTarget(4, _perPixelSlotBuffer, true);
+
+        _instance.AddLinkedListDrawCalls(_commandBuffer, _instanceShader, _bufferWidth, _bufferHeight, _pixelCount * _maxNodesPerPixel, source);
+
+        // Composite in the same CommandBuffer — Unity inserts the UAV barrier for us
+        _commandBuffer.Blit(source, destination, _compositeMaterial);
+
+        Graphics.ExecuteCommandBuffer(_commandBuffer);
     }
 
     private void RemoveCommandBuffer()

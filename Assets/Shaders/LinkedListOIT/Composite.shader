@@ -33,12 +33,15 @@ Shader "Hidden/LinkedListOIT/Composite"
                 float4 screenPos : TEXCOORD1;
             };
 
-            // StructuredBuffer<uint> _HeadBuffer;
-            RWByteAddressBuffer _HeadBuffer;
-            StructuredBuffer<FragmentAndLinkColorBuffer> _NodeBuffer;
+            // // StructuredBuffer<uint> _HeadBuffer;
+            // ByteAddressBuffer _HeadBuffer;
+            // StructuredBuffer<FragmentAndLinkColorBuffer> _NodeBuffer;
+            RWByteAddressBuffer _HeadBuffer : register(u2);
+            RWStructuredBuffer<FragmentAndLinkColorBuffer> _NodeBuffer : register(u3);
+            RWStructuredBuffer<uint> _FragmentCounter : register(u4);
             sampler2D _MainTex;
             sampler2D _BackgroundTex;
-            float2 _OIT_Size;
+            float4 _OIT_Size;
 
             #define MAX_FRAGMENTS 64
 
@@ -58,13 +61,10 @@ Shader "Hidden/LinkedListOIT/Composite"
                 pixCoord = min(pixCoord, bufferSize - 1);
                 uint pixelIdx = pixCoord.x + pixCoord.y * bufferSize.x;
 
-                // uint head = _HeadBuffer[pixelIdx];
-
                 float2 screenUV = i.screenPos.xy / i.screenPos.w;
                 uint2 screenPos = ScreenCoord(screenUV, (uint2)_OIT_Size.xy);
                 uint uStartOffsetAddress = ByteAddress(screenPos, (uint2)_OIT_Size.xy);
-                uint uOffset;
-                _HeadBuffer.InterlockedExchange(uStartOffsetAddress, 0xFFFFFFFF, uOffset);
+                uint uOffset = _HeadBuffer.Load(uStartOffsetAddress);
                 
                 if (uOffset == 0xFFFFFFFF)
                 {

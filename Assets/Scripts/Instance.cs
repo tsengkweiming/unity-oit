@@ -181,7 +181,7 @@ public class Instance : MonoBehaviour
         Graphics.ExecuteCommandBuffer(_commandBuffer);
     }
 
-    public void AddLinkedListDrawCalls(CommandBuffer cmd, Shader instanceShader, int width, int height, int maxNodes)
+    public void AddLinkedListDrawCalls(CommandBuffer cmd, Shader instanceShader, int width, int height, int maxNodes, RenderTexture texture)
     {
         if (instanceShader == null || _instanceProps == null) return;
 
@@ -216,6 +216,7 @@ public class Instance : MonoBehaviour
             material.SetBuffer("_InstanceBuffer", _dataBuffers[i]);
             material.SetVector("_OIT_Size", new Vector2(width, height));
             material.SetInt("_MaxNodes", maxNodes);
+            material.SetTexture("_BackgroundTex", texture);
 
             var mesh = _instanceProps[i].Mesh;
             for (int sm = 0; sm < mesh.subMeshCount; sm++)

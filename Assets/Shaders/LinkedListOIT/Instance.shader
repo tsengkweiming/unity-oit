@@ -45,6 +45,7 @@ Shader "Hidden/LinkedListOIT/Instance"
     float _Scale;
     float _Alpha;
     float4 _Color;
+    sampler2D _BackgroundTex;
 
     v2f vert(appdata v)
     {
@@ -97,13 +98,14 @@ Shader "Hidden/LinkedListOIT/Instance"
         
         FragmentAndLinkColorBuffer node;
         node.uuid = 0;
-        node.depth = i.depth;
+        node.depth = i.screenPos.z / i.screenPos.w;//i.depth;
         node.next = prevHead;
         node.color = ColorToBit(color);
 
         _NodeBuffer[nodeIdx] = node;
 
         // return color;
+        return tex2D(_BackgroundTex, i.uv);
         return float4(0, 0, 0, 0);
     }
     ENDCG
